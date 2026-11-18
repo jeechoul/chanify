@@ -1,0 +1,34 @@
+
+name: Auto Sync Upstream
+
+on:
+  schedule:
+    # 每6小时同步一次，避开整点高峰
+    - cron: '17 */6 * * *'
+
+  # 支持手动触发
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Force sync upstream
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh repo sync "$REPO" --force
